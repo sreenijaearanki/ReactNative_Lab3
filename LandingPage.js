@@ -4,7 +4,7 @@ import { View, Button, StyleSheet, Text } from 'react-native';
 const LandingPage = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome</Text>
+      <Text style={styles.title}>Welcome to the App</Text>
       <View style={styles.buttonContainer}>
         <Button title="Sign In" onPress={() => navigation.navigate('SignIn')} />
         <Button title="Sign Up" onPress={() => navigation.navigate('SignUp')} />
