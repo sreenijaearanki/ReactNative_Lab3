@@ -1,31 +1,59 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';  // Import the sign-up method
-import { auth } from './firebase';  // Import the initialized auth object
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from './firebase';
+import { doc, setDoc } from 'firebase/firestore';  // Firestore functions
+import AsyncStorage from '@react-native-async-storage/async-storage';  // For local storage
 
 const SignUp = ({ navigation }) => {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    name: ''
   });
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = () => {
-    createUserWithEmailAndPassword(auth, formData.email, formData.password)
-      .then(() => {
-        navigation.navigate('Home');  // Navigate to Home screen on successful sign-up
-      })
-      .catch(error => {
-        Alert.alert("Sign Up Failed", error.message);  // Display error message if sign-up fails
+  const storeUserDataLocally = async (userData) => {
+    try {
+      await AsyncStorage.setItem('userEmail', userData.email);
+      await AsyncStorage.setItem('userName', userData.name);
+    } catch (e) {
+      console.error("Failed to save user data to local storage", e);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const user = userCredential.user;
+
+      // Store user details in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        name: formData.name,
+        email: formData.email
       });
+
+      // Store user details locally using AsyncStorage
+      storeUserDataLocally({ email: formData.email, name: formData.name });
+
+      // Navigate to Home screen
+      navigation.navigate('Home');
+    } catch (error) {
+      Alert.alert('Sign Up Failed', error.message);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        onChangeText={(value) => handleChange('name', value)}
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"

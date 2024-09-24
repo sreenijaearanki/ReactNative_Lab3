@@ -1,13 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';  // Import the sign-in method
-import { auth } from './firebase';  // Import the initialized auth object
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from './firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';  // For local storage
 
 const SignIn = ({ navigation }) => {
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
   });
+
+  useEffect(() => {
+    const loadUserEmail = async () => {
+      try {
+        const storedEmail = await AsyncStorage.getItem('userEmail');
+        if (storedEmail) {
+          setLoginData({ ...loginData, email: storedEmail });
+        }
+      } catch (e) {
+        console.error("Failed to load email from local storage", e);
+      }
+    };
+
+    loadUserEmail();
+  }, []);
 
   const handleChange = (name, value) => {
     setLoginData({ ...loginData, [name]: value });
@@ -16,10 +32,10 @@ const SignIn = ({ navigation }) => {
   const handleSubmit = () => {
     signInWithEmailAndPassword(auth, loginData.email, loginData.password)
       .then(() => {
-        navigation.navigate('Home');  // Navigate to Home screen on successful sign-in
+        navigation.navigate('Home');
       })
       .catch(error => {
-        Alert.alert("Sign In Failed", error.message);  // Display error message if sign-in fails
+        Alert.alert("Sign In Failed", error.message);
       });
   };
 
@@ -29,6 +45,7 @@ const SignIn = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        value={loginData.email}
         onChangeText={(value) => handleChange('email', value)}
       />
       <TextInput
