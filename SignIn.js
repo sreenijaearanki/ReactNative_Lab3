@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebase';
-import AsyncStorage from '@react-native-async-storage/async-storage';  // For local storage
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignIn = ({ navigation }) => {
   const [loginData, setLoginData] = useState({
@@ -18,7 +18,7 @@ const SignIn = ({ navigation }) => {
           setLoginData({ ...loginData, email: storedEmail });
         }
       } catch (e) {
-        console.error("Failed to load email from local storage", e);
+        console.error('Failed to load email from local storage', e);
       }
     };
 
