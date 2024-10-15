@@ -1,74 +1,44 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from './firebase';
-import { doc, setDoc } from 'firebase/firestore';  // Firestore functions
-import AsyncStorage from '@react-native-async-storage/async-storage';  // For local storage
+import { auth } from './firebase'; // Make sure you have firebase setup
 
-const SignUp = ({ navigation }) => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: ''
-  });
+export default function SignUpScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const storeUserDataLocally = async (userData) => {
+  const handleSignUp = async () => {
     try {
-      await AsyncStorage.setItem('userEmail', userData.email);
-      await AsyncStorage.setItem('userName', userData.name);
-    } catch (e) {
-      console.error("Failed to save user data to local storage", e);
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Store user details in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        name: formData.name,
-        email: formData.email
-      });
-
-      // Store user details locally using AsyncStorage
-      storeUserDataLocally({ email: formData.email, name: formData.name });
-
-      // Navigate to Home screen
-      navigation.navigate('Home');
+      console.log('User signed up:', user);
+      navigation.navigate('LoginScreen'); // Navigate to LoginScreen after signup
     } catch (error) {
-      Alert.alert('Sign Up Failed', error.message);
+      console.error('Signup failed:', error.message);
+      Alert.alert('Signup Error', error.message);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        onChangeText={(value) => handleChange('name', value)}
-      />
+      <Text>Sign Up</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
-        onChangeText={(value) => handleChange('email', value)}
+        value={email}
+        onChangeText={(text) => setEmail(text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
         secureTextEntry
-        onChangeText={(value) => handleChange('password', value)}
+        value={password}
+        onChangeText={(text) => setPassword(text)}
       />
-      <Button title="Sign Up" onPress={handleSubmit} />
+      <Button title="Sign Up" onPress={handleSignUp} />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -80,14 +50,8 @@ const styles = StyleSheet.create({
     width: '80%',
     padding: 10,
     marginVertical: 10,
-    borderWidth: 1,
     borderColor: '#ccc',
+    borderWidth: 1,
     borderRadius: 5,
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-  },
 });
-
-export default SignUp;
